@@ -28,9 +28,21 @@ def masked_input(prompt):
     return password
 
 def sign_up():
+    print('---Sign up---')
     userName = input("Enter a username: ").strip()
+    
+    length = len(userName)
+    print(f'Username is {length} long') #r
+    if len(userName) <= 3:
+        print('Username must be greater then or equal to 4 characters long')
+        matchesL = True
+        while matchesL == True:
+            userName = input('Username: ')
+            if len(userName) >= 8:
+                print("Username is suceful") #r
+                break
 
-    with open('details.txt','r') as file:
+    with open("account_sys-lite-\\details.txt",'r') as file:
         content = file.readlines()
         print(content)
         if (f'Username: {userName}\n') in content:
@@ -41,15 +53,6 @@ def sign_up():
                 if not userName:
                     print("name cannot be empty")
                     exit()
-                print(f'Userpass is {len(userPass)} long') #r
-                if len(userPass) <= 7:
-                    print('Password must be greater then or equal to 8 characters long')
-                    matchesL = True
-                    while matchesL == True:
-                        userName = input('Username: ')
-                        if len(userName) >= 8:
-                            print("Username is suceful") #r
-                            break
                 for i in userName:
                     if i in unallowed:
                         print(f"Username cannot contain '{i}' try again")
@@ -63,6 +66,17 @@ def sign_up():
                     exists = False
             
     userPass = masked_input("Enter a password: ").strip()
+    
+    length = len(userPass)
+    print(f'Userpass is {length} long') #r
+    if len(userPass) <= 7:
+        print('Password must be greater then or equal to 8 characters long')
+        matchesL = True
+        while matchesL == True:
+            userName = masked_input("Enter a password: ")
+            if len(userName) >= 8:
+                print("Password is suceful") #r
+                break
     #make it to so where if the password is too common among all users then they cant use it and make it to so there password requirements for security
     bytesPass = userPass.encode('utf-8')
     hash_pass = bcrypt.hashpw(bytesPass, salt)
@@ -94,15 +108,15 @@ def sign_up():
             
     hash_pass = bcrypt.hashpw(bytesPassConfirm, salt)
     
-    with open("details.txt", 'a') as file:
+    with open("account_sys-lite-\\details.txt", 'a') as file:
         content = file.write(f'---{userName}---\n')
         length = len(userName)
         file.write(f"Username: {userName}\n")
         file.write(f'Password: {hash_pass}\n')
         # i = '-'
         file.write(f"---{'-'*length}---\n")
-        
-        
+
+
 sign_up()
 
 #in sign in function make it pull the password from the line under the username it found
