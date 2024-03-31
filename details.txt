@@ -1,0 +1,4 @@
+---so---
+Username: so
+Password: b'$2b$12$IUiFUK0Sy5ewMrkoe3ohSOKix9PUkqbZVfmT24fT1VKpnmhDKy0X.'
+--------
