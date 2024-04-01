@@ -1,7 +1,7 @@
-import hashlib #work on this later again #add id system #only problem left in sign in function is bcrypt generation of different hashes with same text find way to fix that then sign in function done and then able to work on security and cutomization of the script and ID SYSTEM 
-import bcrypt
+import hashlib #only problem left is hashes not matching verification even with same inputs
 import msvcrt
-import random
+import argon2
+import os
 
 unallowed=[",", "}", "{", "\\", "|", ";", ">", "<", "[", "]", "%", ":", "/", "*", "$", "@", "!", "^", "&", ".", "#", "+", "=", "-"," "]
 
@@ -14,10 +14,10 @@ def masked_input(prompt):
         if char == '\r' or char == '\n':
             break
         
-        elif char == '\b':  # for backspace
+        elif char == '\b':
             if len(password) > 0:
                 password = password[:-1]
-                print('\b \b', end='', flush=True)  # erase the character
+                print('\b \b', end='', flush=True)
         else:
             password += char
             print('*', end='', flush=True)
@@ -25,33 +25,30 @@ def masked_input(prompt):
     print()
     return password
 
-salt = bcrypt.gensalt(12)
+salt = os.urandom(16)
 
 def sign_up():
     print('---Sign up---')
     userName = input("Enter a username: ").strip()
     
     length = len(userName)
-    print(f'Username is {length} long') #r
     if len(userName) <= 3:
         print('Username must be greater then or equal to 4 characters long')
         matchesL = True
         while matchesL == True:
             userName = input('Enter a username: ')
-            if len(userName) >= 8:
-                print("username is suceful") #r
+            if len(userName) >= 4:
                 break
 
-    with open("account_sys-lite-\\details.txt",'r') as file:
+    with open("PATH\TO\DETAILS.TXT\FILE",'r') as file:
         content = file.readlines()
-        print(content)
         if (f'Username: {userName}\n') in content:
-            print("that username already exists. try another one")
+            print("That username already exists. Try another one")
             exists = True
             while exists == True:
                 userName = input("Enter a username: ").strip()
                 if not userName:
-                    print("name cannot be empty")
+                    print("Username cannot be empty")
                     exit()
                 for i in userName:
                     if i in unallowed:
@@ -60,10 +57,10 @@ def sign_up():
                         while unallowed_char == True:
                             userName = input("Enter a username: ").strip()
                             if userName not in unallowed:
-                                print('succeful')
                                 unallowed_char = False
                 if userName not in content:
                     exists = False
+    
     sha512_hasher = hashlib.sha512()             
     sha512_hasher.update(userName.encode('utf-8'))
     hash_user = sha512_hasher.hexdigest()
@@ -71,47 +68,35 @@ def sign_up():
     userPass = masked_input("Enter a password: ").strip()
     
     length = len(userPass)
-    print(f'Userpass is {length} long') #r
     if len(userPass) <= 7:
         print('Password must be greater then or equal to 8 characters long')
         matchesL = True
         while matchesL == True:
-            userName = masked_input("Enter a password: ")
-            if len(userName) >= 8:
-                print("Password is suceful") #r
+            userPass = masked_input("Enter a password: ")
+            if len(userPass) >= 8:
                 break
-    #make it to so where if the password is too common among all users then they cant use it and make it to so there password requirements for security
-    bytesPass = userPass.encode('utf-8')
-    hash_pass = bcrypt.hashpw(bytesPass, salt)
-
-    if not userPass:
-        print("Password cannot be empty try again later.")
-        exit()
         
-    userPassConfirm = masked_input("Confirm your password: ").strip() 
-    bytesPassConfirm = userPassConfirm.encode('utf-8')
-
-    if not userPassConfirm:
-        print("Password cannot be empty try again later.")
-        exit()
+    hash_pass = argon2.low_level.hash_secret(userPass.encode('utf-8'),salt,time_cost=16,memory_cost=2**15, parallelism=2,hash_len=32,
+                                         type=argon2.low_level.Type.ID)
         
-    if bcrypt.checkpw(bytesPassConfirm, hash_pass) != True:
+    userPassConfirm = masked_input("Confirm your password: ").strip()
+        
+    if argon2.low_level.verify_secret(hash_pass, userPassConfirm.encode('utf-8'), type=argon2.low_level.Type.ID) != True:
         for i in reversed(range(1,4)):
             print("Passwords do not match try again.")
             print(f'{i} more tries available')
             userPass = masked_input("Enter a password: ").strip()
-            bytesPass = userPass.encode('utf-8')
-            hash_pass = bcrypt.hashpw(bytesPass, salt)
+            hash_pass = argon2.low_level.hash_secret(userPass.encode('utf-8'),salt,time_cost=16,memory_cost=2**15, parallelism=2,hash_len=32,
+                                         type=argon2.low_level.Type.ID)
             userPassConfirm = masked_input("Confirm your password: ").strip()
-            bytesPassConfirm = userPassConfirm.encode("utf-8")
-            op = bcrypt.checkpw(bytesPassConfirm, hash_pass)
+            op = argon2.low_level.verify_secret(hash_pass, userPassConfirm.encode('utf-8'), type=argon2.low_level.Type.ID)
             if op == True:
-                print("Password confirmed")
                 break
             
-    hash_pass = bcrypt.hashpw(bytesPassConfirm, salt)
+    hash_pass = argon2.low_level.hash_secret(userPassConfirm.encode('utf-8'),salt,time_cost=16,memory_cost=2**15, parallelism=2,hash_len=32,
+                                         type=argon2.low_level.Type.ID)
     
-    with open("account_sys-lite-\\details.txt", 'ab') as file: #ab append bytes
+    with open("PATH\TO\DETAILS.TXT\FILE", 'ab') as file: #ab append bytes
         length = len(userName)
         content = file.write(f'---{userName}---\n'.encode('utf-8'))
         file.write(f"Username: {userName}\n".encode('utf-8'))
@@ -119,77 +104,37 @@ def sign_up():
         file.write(f'{hash_user}'.encode('utf-8'))
         file.write('\n'.encode('utf-8'))
         file.write(hash_pass+'\n'.encode('utf-8'))
-        # file.write('\n'.encode('utf-8'))
         file.write(f"---{'-'*length}---\n".encode('utf-8'))
+        print("Account created.")
 
 def sign_in():
-    # try:
-        with open('account_sys-lite-\\details.txt', 'rb') as file: #open bytes #only problem left is wrong hashes
-            readable = file.readlines()
-            print(f'"{readable}"')
-            userName = input("Username: ")
-            sha512_hasher = hashlib.sha512()
-            sha512_hasher.update(userName.encode('utf-8'))
-            hash_user = sha512_hasher.hexdigest()
-            print(hash_user,end='\n')
-            indexingHash = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1)+2
-            print(readable[indexingHash])
-            if f'---{userName}---\n'.encode("utf-8") in readable and f'Username: {userName}\n'.encode('utf-8') in readable and hash_user.encode('utf-8') in readable[indexingHash]:
-                print("found user")
-                # for line in readable:
-                user = readable.index(f'---{userName}---\n'.encode('utf-8'),0,-1) #line number
-                userC = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1) #line number
-                
-                print(user) #r
-                
-                list = [] #r
-                print("som") #r
-                
-                print(readable[user]) #r
-                print(readable[userC]) #r
-                
-                # print(file.readlines(f'---{userName}---\n'))
-                userPass = masked_input("Password: ").strip()
-                userPassBytes = userPass.encode('utf-8')
-                print(userPassBytes)
-                userPassHash = bcrypt.hashpw(userPassBytes, salt) #r
-                print(userPassHash)
-                userPassHash = userPassHash+'\n'.encode('utf-8')
-                print(userPassHash)
-                
-                # userHashStr = userC+1#line number #gives value error if wrong hash
-                print(f"line is {userC+3}") #r
-                
-                passLine = readable[userC+3]#password line
-                
-                print(passLine, end='\n')
-                # print(f"Password = {userPassBytes} , Username: {userName}\n")
+    with open('PATH\TO\DETAILS.TXT\FILE', 'rb') as file: #open bytes #only problem left is wrong hashes
+        readable = file.readlines()
+        userName = input("Username: ")
+        sha512_hasher = hashlib.sha512()
+        sha512_hasher.update(userName.encode('utf-8'))
+        hash_user = sha512_hasher.hexdigest()
+        indexingHash = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1)+2
+        if f'---{userName}---\n'.encode("utf-8") in readable and f'Username: {userName}\n'.encode('utf-8') in readable and hash_user.encode('utf-8') in readable[indexingHash]:
+            print("found user")
+            userC = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1) #line number
+            
+            userPass = masked_input("Password: ").strip() #password
+            passLine = readable[userC+3]#password hash line
 
-                if bcrypt.checkpw(userPassBytes,passLine) == True:
+            try:
+                if argon2.low_level.verify_secret(passLine, userPass.encode('utf-8')+'\n'.encode("utf-8"), type=argon2.low_level.Type.ID) == True:
                     print("account entered")
-                else:
-                    print("wrong hash")
-                
-            else:
-                print("not found") #user not found
-    # except ValueError:
-    #     print("wrong hash")
-    #     print("failed to enter account")
+            except argon2.exceptions.VerificationError:
+                print("password hashes dont match")
+            
+        else:
+            print("not found") #user not found
 
+options = input("what would you like to do?(su\\si): ")
 
+if options == 'su':
+    sign_up()
 
-sign_up()
-# sign_in()
-
-#in sign in function make it pull the password from the line under the username it found
-#search 2 lines under username for pass in signin function
-
-# print(bcrypt.checkpw(passwrd, hash_pass))
-
-# print(hash_pass, end='\n\n')
-
-# sha512_hasher = hashlib.sha512()
-# sha512_hasher.update(username)
-# hash_user = sha512_hasher.hexdigest()
-
-# print(hash_user)
+elif options == 'si':
+    sign_in()
