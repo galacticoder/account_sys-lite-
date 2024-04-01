@@ -68,26 +68,54 @@
 # namehash = sha512_hasher.hexdigest()
 # print(namehash)
 
+# import bcrypt
 
+# some = bcrypt.gensalt(12)
 
+# text = "someone"
 
+# data = bcrypt.hashpw(text.encode('utf-8'),some)
+# with open('something.txt','w') as file:
+#     writableD = file.write(str(data))
 
+# with open('something.txt','r') as file:
+#     readableD = file.read()
+#     readableD = readableD.encode('utf-8').strip()
+#     print(readableD)
 
+#     data = bcrypt.hashpw(text.encode('utf-8'),some)
 
+#     # some = str(data).encode("utf-8")
+#     # print(some)
 
-
-
+#     print(bcrypt.checkpw(data,readableD))
+# # print(bcrypt.hashpw('text'.encode('utf-8'),salt))
 import bcrypt
 
-some = bcrypt.gensalt(12)
 salt = bcrypt.gensalt(12)
-print(bcrypt.hashpw('text'.encode('utf-8'),some))
 
-print(bcrypt.hashpw('text'.encode('utf-8'),salt))
+def hashing(x,y):
+    hashX = bcrypt.hashpw(x.encode('utf-8'),salt)
+    hashy = bcrypt.hashpw(y.encode('utf-8'),salt)
+    print('\n')
+    # print(bcrypt.checkpw(hashy,hashX))
+    # print(str(hashX),'\n'+str(hashy).strip())
+    with open('something.txt','ab') as file:
+        file.writelines(["pass: ".encode('utf-8')+hashX,'\n'.encode('utf-8'),'passy: '.encode('utf-8')+hashy])
+        file.writelines(["\nsomething".encode('utf-8')])
+    # with open('something.txt','a') as file:
+    #     file.write("\n---")
+    with open('something.txt', 'rb') as file:
+        readable = file.read()
+        print(readable)
+        # print("\n")
+        # print(readable[])
+        
+    
+    
 
 
-
-
+hashing('text','text')
 
 
 

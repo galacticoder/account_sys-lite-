@@ -111,19 +111,20 @@ def sign_up():
             
     hash_pass = bcrypt.hashpw(bytesPassConfirm, salt)
     
-    with open("account_sys-lite-\\details.txt", 'a') as file:
-        content = file.write(f'---{userName}---\n')
+    with open("account_sys-lite-\\details.txt", 'ab') as file: #ab append bytes
         length = len(userName)
-        file.write(f"Username: {userName}\n")
-        file.write(f'Password = {hash_pass} , Username: {userName}\n')
-        file.write(f'{hash_user}\n')
-        
-        # i = '-'
-        file.write(f"---{'-'*length}---\n")
+        content = file.write(f'---{userName}---\n'.encode('utf-8'))
+        file.write(f"Username: {userName}\n".encode('utf-8'))
+        file.write(f'Password = {hash_pass} , Username: {userName}\n'.encode('utf-8'))
+        file.write(f'{hash_user}'.encode('utf-8'))
+        file.write('\n'.encode('utf-8'))
+        file.write(hash_pass+'\n'.encode('utf-8'))
+        # file.write('\n'.encode('utf-8'))
+        file.write(f"---{'-'*length}---\n".encode('utf-8'))
 
 def sign_in():
     # try:
-        with open('account_sys-lite-\\details.txt', 'r') as file:
+        with open('account_sys-lite-\\details.txt', 'rb') as file: #open bytes #only problem left is wrong hashes
             readable = file.readlines()
             print(f'"{readable}"')
             userName = input("Username: ")
@@ -131,17 +132,17 @@ def sign_in():
             sha512_hasher.update(userName.encode('utf-8'))
             hash_user = sha512_hasher.hexdigest()
             print(hash_user,end='\n')
-            indexingHash = readable.index(f'Username: {userName}\n',0,-1)+2
+            indexingHash = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1)+2
             print(readable[indexingHash])
-            if f'---{userName}---\n' in readable and f'Username: {userName}\n' in readable and hash_user in readable[indexingHash]:
+            if f'---{userName}---\n'.encode("utf-8") in readable and f'Username: {userName}\n'.encode('utf-8') in readable and hash_user.encode('utf-8') in readable[indexingHash]:
                 print("found user")
                 # for line in readable:
-                user = readable.index(f'---{userName}---\n',0,-1) #line number
-                userC = readable.index(f'Username: {userName}\n',0,-1) #line number
+                user = readable.index(f'---{userName}---\n'.encode('utf-8'),0,-1) #line number
+                userC = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1) #line number
                 
                 print(user) #r
                 
-                list = []
+                list = [] #r
                 print("som") #r
                 
                 print(readable[user]) #r
@@ -150,48 +151,24 @@ def sign_in():
                 # print(file.readlines(f'---{userName}---\n'))
                 userPass = masked_input("Password: ").strip()
                 userPassBytes = userPass.encode('utf-8')
-                userPassHash = bcrypt.hashpw(userPassBytes, salt)
+                print(userPassBytes)
+                userPassHash = bcrypt.hashpw(userPassBytes, salt) #r
+                print(userPassHash)
+                userPassHash = userPassHash+'\n'.encode('utf-8')
+                print(userPassHash)
                 
                 # userHashStr = userC+1#line number #gives value error if wrong hash
-                print(f"line is {userC+2}") #r
+                print(f"line is {userC+3}") #r
                 
-                passLine = readable[userC+1]#password line
+                passLine = readable[userC+3]#password line
                 
                 print(passLine, end='\n')
-                print(f"Password = {userPassHash} , Username: {userName}\n")
-                
-                #-------------------------
-                # list = []
-                # for i in passLine:
-                #     list.append(i)
-                # print("index thing ") #r            
-                # after = list.index(',')
-                # before = list.index('=')
-                
-                # updated = list[before+4:after-2]
-                # # print(updated) #r
-                # # print('\n') #r
-                # # print(list) #r
-                
-                # # str1 = ''
-                # # hashedStr = 
-                # # print(hashedStr) #r
-                # hashStored = ''.join(updated).encode('utf-8')
-                # print(f'stored hash: {hashStored}') #r
-                # print(f'your hash: {userPassHash}')
-                #-------------------------
-                
-                
-                # text = "someonee".encode('utf-8')
-                # print(bcrypt.hashpw(text, salt))
-                
-                # print(updated2) #r
-                # print(passLine[9:]) #r
-                
-                #and bcrypt.checkpw(userPassHash, hashStored) == True
-                
-                if readable.index(f"Password = {userPassHash} , Username: {userName}\n",0,-1):
+                # print(f"Password = {userPassBytes} , Username: {userName}\n")
+
+                if bcrypt.checkpw(userPassBytes,passLine) == True:
                     print("account entered")
+                else:
+                    print("wrong hash")
                 
             else:
                 print("not found") #user not found
@@ -201,8 +178,8 @@ def sign_in():
 
 
 
-# sign_up()
-sign_in()
+sign_up()
+# sign_in()
 
 #in sign in function make it pull the password from the line under the username it found
 #search 2 lines under username for pass in signin function
