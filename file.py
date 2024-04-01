@@ -1,4 +1,4 @@
-import hashlib #only problem left is hashes not matching verification even with same inputs
+import hashlib #Only problem left is hashes not matching verification even with same inputs
 import msvcrt
 import argon2
 import os
@@ -96,7 +96,7 @@ def sign_up():
     hash_pass = argon2.low_level.hash_secret(userPassConfirm.encode('utf-8'),salt,time_cost=16,memory_cost=2**15, parallelism=2,hash_len=32,
                                          type=argon2.low_level.Type.ID)
     
-    with open("PATH\TO\DETAILS.TXT\FILE", 'ab') as file: #ab append bytes
+    with open("PATH\TO\DETAILS.TXT\FILE", 'ab') as file: #Ab append bytes
         length = len(userName)
         content = file.write(f'---{userName}---\n'.encode('utf-8'))
         file.write(f"Username: {userName}\n".encode('utf-8'))
@@ -108,7 +108,7 @@ def sign_up():
         print("Account created.")
 
 def sign_in():
-    with open('PATH\TO\DETAILS.TXT\FILE', 'rb') as file: #open bytes #only problem left is wrong hashes
+    with open('PATH\TO\DETAILS.TXT\FILE', 'rb') as file: #Open bytes #only problem left is wrong hashes
         readable = file.readlines()
         userName = input("Username: ")
         sha512_hasher = hashlib.sha512()
@@ -117,10 +117,10 @@ def sign_in():
         indexingHash = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1)+2
         if f'---{userName}---\n'.encode("utf-8") in readable and f'Username: {userName}\n'.encode('utf-8') in readable and hash_user.encode('utf-8') in readable[indexingHash]:
             print("found user")
-            userC = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1) #line number
+            userC = readable.index(f'Username: {userName}\n'.encode('utf-8'),0,-1) #Line number
             
-            userPass = masked_input("Password: ").strip() #password
-            passLine = readable[userC+3]#password hash line
+            userPass = masked_input("Password: ").strip() #Password
+            passLine = readable[userC+3] #Password hash line
 
             try:
                 if argon2.low_level.verify_secret(passLine, userPass.encode('utf-8')+'\n'.encode("utf-8"), type=argon2.low_level.Type.ID) == True:
@@ -129,7 +129,7 @@ def sign_in():
                 print("password hashes dont match")
             
         else:
-            print("not found") #user not found
+            print("User not found. Consider signing up.") #User not found
 
 options = input("what would you like to do?(su\\si): ")
 
